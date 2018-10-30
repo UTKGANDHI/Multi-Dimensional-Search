@@ -17,13 +17,37 @@ public class MDS {
     HashMap <Long, TreeSet<Product>> prodDescription;
     // Constructors
     class Product {
-        long id;
-        Money price;
-        List<Long> description;
+        private long id;
+        private Money price;
+        private List<Long> description;
 
         public Product(long id, Money price, List<Long> description) {
             this.id = id;
             this.price = price;
+            this.description = description;
+        }
+
+        public long getId() {
+            return id;
+        }
+
+        public void setId(long id) {
+            this.id = id;
+        }
+
+        public Money getPrice() {
+            return price;
+        }
+
+        public void setPrice(Money price) {
+            this.price = price;
+        }
+
+        public List<Long> getDescription() {
+            return description;
+        }
+
+        public void setDescription(List<Long> description) {
             this.description = description;
         }
     }
