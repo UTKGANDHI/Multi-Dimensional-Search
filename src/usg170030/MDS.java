@@ -7,11 +7,30 @@ package usg170030;
 
 // If you want to create additional classes, place them in this file as subclasses of MDS
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.TreeSet;
+
 public class MDS {
     // Add fields of MDS here
-
+    HashMap <Long, Product> products;
+    HashMap <Long, TreeSet<Product>> prodDescription;
     // Constructors
+    class Product {
+        long id;
+        Money price;
+        List<Long> description;
+
+        public Product(long id, Money price, List<Long> description) {
+            this.id = id;
+            this.price = price;
+            this.description = description;
+        }
+    }
+
     public MDS() {
+        this.products = new HashMap();
+        this.prodDescription = new HashMap<>();
     }
 
     /* Public methods of MDS. Do not change their signatures.
