@@ -8,6 +8,7 @@ package usg170030;
 // If you want to create additional classes, place them in this file as subclasses of MDS
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
 
@@ -16,7 +17,7 @@ public class MDS {
     HashMap <Long, Product> products;
     HashMap <Long, TreeSet<Product>> prodDescription;
     // Constructors
-    class Product {
+    class Product implements Comparable<Product>{
         private long id;
         private Money price;
         private List<Long> description;
@@ -26,7 +27,6 @@ public class MDS {
             this.price = price;
             this.description = description;
         }
-
         public long getId() {
             return id;
         }
@@ -50,6 +50,17 @@ public class MDS {
         public void setDescription(List<Long> description) {
             this.description = description;
         }
+
+        @Override
+        public int compareTo(Product o) {
+            return this.price.compareTo(o.price);
+        }
+
+        @Override
+        public String toString() {
+            String ret = "(" + this.id + ", "+ this.price + ", " + this.description + ")";
+            return ret;
+        }
     }
 
     public MDS() {
@@ -66,15 +77,82 @@ public class MDS {
        Returns 1 if the item is new, and 0 otherwise.
     */
     public int insert(long id, Money price, java.util.List<Long> list) {
-        return 0;
+        Product p;
+        List <Long> oldList = null;
+        List <Long> newList =  new LinkedList<>();
+        newList.addAll(list);
+
+        int ret = 0;
+        // Check if the product is present or not
+        if(products.containsKey(id)) {
+            p = products.get(id);
+            p.setPrice(price);
+            oldList = p.getDescription();
+            // Check if the list is null or not
+            if(list != null) {
+                p.setDescription(newList);
+                // Removing old descriptions in map.
+                if(oldList != null) {
+                    for (Long oldId: oldList) {
+                        TreeSet<Product> prodList = prodDescription.get(oldId);
+                        prodList.remove(p);
+                    }
+                }
+
+
+                // Updating product description map
+                for (Long descId: newList) {
+                    TreeSet <Product> prodList;
+                    if(prodDescription.containsKey(descId)) {
+                        prodList = prodDescription.get(descId);
+                        if(!prodList.contains(p))
+                            prodList.add(p);
+                    }
+                    else {
+                        prodList = new TreeSet();
+                        prodList.add(p);
+                        prodDescription.put(descId, prodList);
+                    }
+                }
+            }
+        }
+        // Product is not present
+        else {
+            ret++;
+            p = new Product(id, price, newList);
+            products.put(id, p);
+            for (Long descId: newList) {
+                TreeSet <Product> prodList;
+                if (prodDescription.containsKey(descId)) {
+                    prodList = prodDescription.get(descId);
+                    prodList.add(p);
+                }
+                else {
+                    prodList = new TreeSet();
+                    prodList.add(p);
+                    prodDescription.put(descId, prodList);
+                }
+            }
+        }
+//        this.printMaps();
+        return ret;
+    }
+
+    private void printMaps() {
+        System.out.println("#############################################################");
+        System.out.println(products);
+        System.out.println("#############################################################");
+        System.out.println(prodDescription);
+        System.out.println("#############################################################");
     }
 
     // b. Find(id): return price of item with given id (or 0, if not found).
     public Money find(long id) {
+        if(products.containsKey(id)) return products.get(id).getPrice();
         return new Money();
     }
 
-    /* 
+    /*
        c. Delete(id): delete item from storage.  Returns the sum of the
        long ints that are in the description of the item deleted,
        or 0, if such an id did not exist.
@@ -90,6 +168,9 @@ public class MDS {
        Return 0 if there is no such item.
     */
     public Money findMinPrice(long n) {
+        if(prodDescription.containsKey(n)) {
+            return prodDescription.get(n).first().getPrice();
+        }
         return new Money();
     }
 
@@ -99,6 +180,9 @@ public class MDS {
        Return 0 if there is no such item.
     */
     public Money findMaxPrice(long n) {
+        if(prodDescription.containsKey(n)) {
+            return prodDescription.get(n).last().getPrice();
+        }
         return new Money();
     }
 
@@ -145,7 +229,9 @@ public class MDS {
         public long dollars() { return d; }
         public int cents() { return c; }
         public int compareTo(Money other) { // Complete this, if needed
-            return 0;
+            if(this.dollars() != other.dollars())
+                return (int) (this.dollars() - other.dollars());
+            return this.cents() - other.cents();
         }
         public String toString() { return d + "." + c; }
     }
