@@ -158,7 +158,16 @@ public class MDS {
        or 0, if such an id did not exist.
     */
     public long delete(long id) {
-        return 0;
+        long sum = 0;
+        if (products.containsKey(id)) {
+            List<Long> prodList = products.get(id).getDescription();
+            products.remove(id);
+            prodDescription.remove(id);
+            for (Long l : prodList) {
+                sum += l;
+            }
+        }
+        return sum;
     }
 
     /* 
@@ -192,7 +201,16 @@ public class MDS {
        their prices fall within the given range, [low, high].
     */
     public int findPriceRange(long n, Money low, Money high) {
-        return 0;
+        int count = 0;
+        for (Map.Entry<Long, Product> entry : products.entrySet()) {
+            for (Long descValue : entry.getValue().getDescription()) {
+                if ( descValue == n && (entry.getValue().getPrice().compareTo(low) >0) &&
+                        (entry.getValue().getPrice().compareTo(high) < 0)) {
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 
     /* 
