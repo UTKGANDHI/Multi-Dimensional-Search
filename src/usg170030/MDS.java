@@ -7,10 +7,7 @@ package usg170030;
 
 // If you want to create additional classes, place them in this file as subclasses of MDS
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.*;
 
 public class MDS {
     // Add fields of MDS here
@@ -20,12 +17,12 @@ public class MDS {
     class Product implements Comparable<Product>{
         private long id;
         private Money price;
-        private List<Long> description;
+        private HashSet<Long> description;
 
         public Product(long id, Money price, List<Long> description) {
             this.id = id;
             this.price = price;
-            this.description = description;
+            this.description = new HashSet<Long>(description);
         }
         public long getId() {
             return id;
@@ -44,11 +41,11 @@ public class MDS {
         }
 
         public List<Long> getDescription() {
-            return description;
+            return new List<Long>(description);
         }
 
         public void setDescription(List<Long> description) {
-            this.description = description;
+            this.description = new HashSet<Long>(description);
         }
 
         @Override
@@ -98,7 +95,6 @@ public class MDS {
                         prodList.remove(p);
                     }
                 }
-
 
                 // Updating product description map
                 for (Long descId: newList) {
@@ -202,12 +198,14 @@ public class MDS {
     */
     public int findPriceRange(long n, Money low, Money high) {
         int count = 0;
-        for (Map.Entry<Long, Product> entry : products.entrySet()) {
-            for (Long descValue : entry.getValue().getDescription()) {
-                if ( descValue == n && (entry.getValue().getPrice().compareTo(low) >0) &&
-                        (entry.getValue().getPrice().compareTo(high) < 0)) {
-                    count++;
-                }
+        TreeSet<Product> temp;
+
+        if(prodDescription.containsKey(n)){
+            temp = prodDescription.get(n);
+            for(Product p:temp){
+               if(p.getPrice().compareTo(low) > 0 && p.getPrice().compareTo(high) <=0){
+                   count++;
+               }
             }
         }
         return count;
@@ -219,7 +217,25 @@ public class MDS {
        prices of items.  Returns the sum of the net increases of the prices.
     */
     public Money priceHike(long l, long h, double rate) {
-        return new Money();
+        Product p;
+        Money prodPrice;
+        double sum = 0;
+        double diff,temp;
+
+        for(long i=l;i<h;i++){
+            sum =0;
+            if(products.containsKey(i)){
+                p = products.get(i);
+                prodPrice = p.getPrice();
+                temp = (double)prodPrice.d +(0.01)*prodPrice.c;
+                prodPrice.d = (long)((1 + (0.01)*rate)*(prodPrice.d+ temp));
+                prodPrice.c = 0;
+                p.setPrice(prodPrice);
+                diff = prodPrice.d - temp;
+                sum += diff;
+            }
+        }
+        return new Money((long)sum,(int)(sum - (long)sum));
     }
 
     /*
@@ -229,7 +245,28 @@ public class MDS {
       deleted from the description of id.  Return 0 if there is no such id.
     */
     public long removeNames(long id, java.util.List<Long> list) {
-        return 0;
+        Product p = products.get(id);
+        TreeSet<Product> temp;
+        long count = 0;
+
+        for(Long descID:list) {
+            if (prodDescription.containsKey(descID)) {
+                temp = prodDescription.get(descID);
+                if(temp.contains(p)){
+                    temp.remove(p);
+                    count+=descID;
+                }
+            }
+        }
+
+        List<Long> descList = p.getDescription();
+        for(Long descID:list){
+                if(descList.contains(descID)){
+                    descList.remove(descID);
+                }
+        }
+
+        return count;
     }
 
     // Do not modify the Money class in a way that breaks LP3Driver.java
