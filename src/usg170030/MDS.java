@@ -7,6 +7,8 @@ package usg170030;
 
 // If you want to create additional classes, place them in this file as subclasses of MDS
 
+import sun.reflect.generics.tree.Tree;
+
 import java.util.*;
 
 public class MDS {
@@ -24,6 +26,13 @@ public class MDS {
             this.price = price;
             this.description = new HashSet<Long>(description);
         }
+
+        public Product(Money low) {
+            this.price = low;
+            this.id = 0;
+            this.description = null;
+        }
+
         public long getId() {
             return id;
         }
@@ -40,8 +49,8 @@ public class MDS {
             this.price = price;
         }
 
-        public List<Long> getDescription() {
-            return new List<Long>(description);
+        public HashSet<Long> getDescription() {
+            return this.description;
         }
 
         public void setDescription(List<Long> description) {
@@ -75,7 +84,7 @@ public class MDS {
     */
     public int insert(long id, Money price, java.util.List<Long> list) {
         Product p;
-        List <Long> oldList = null;
+        HashSet <Long> oldList = null;
         List <Long> newList =  new LinkedList<>();
         newList.addAll(list);
 
@@ -86,7 +95,7 @@ public class MDS {
             p.setPrice(price);
             oldList = p.getDescription();
             // Check if the list is null or not
-            if(list != null) {
+            if(list != null && list.size() != 0) {
                 p.setDescription(newList);
                 // Removing old descriptions in map.
                 if(oldList != null) {
@@ -130,7 +139,6 @@ public class MDS {
                 }
             }
         }
-//        this.printMaps();
         return ret;
     }
 
@@ -155,12 +163,14 @@ public class MDS {
     */
     public long delete(long id) {
         long sum = 0;
+        Product p;
         if (products.containsKey(id)) {
-            List<Long> prodList = products.get(id).getDescription();
+            p = products.get(id);
+            HashSet<Long> prodList = products.get(id).getDescription();
             products.remove(id);
-            prodDescription.remove(id);
-            for (Long l : prodList) {
-                sum += l;
+            for (Long remKey: prodList) {
+                prodDescription.get(remKey).remove(p);
+                sum += remKey;
             }
         }
         return sum;
@@ -185,7 +195,7 @@ public class MDS {
        Return 0 if there is no such item.
     */
     public Money findMaxPrice(long n) {
-        if(prodDescription.containsKey(n)) {
+        if(prodDescription.containsKey(n) && prodDescription.get(n).size() != 0) {
             return prodDescription.get(n).last().getPrice();
         }
         return new Money();
@@ -198,44 +208,52 @@ public class MDS {
     */
     public int findPriceRange(long n, Money low, Money high) {
         int count = 0;
-        TreeSet<Product> temp;
-
+        TreeSet <Product> tail_set;
         if(prodDescription.containsKey(n)){
-            temp = prodDescription.get(n);
-            for(Product p:temp){
-               if(p.getPrice().compareTo(low) > 0 && p.getPrice().compareTo(high) <=0){
-                   count++;
-               }
+            Product lowProduct = new Product(low);
+            tail_set = (TreeSet<Product>) prodDescription.get(n).tailSet(lowProduct);
+            for (Product p: tail_set) {
+                if(p.getPrice().compareTo(high) <= 0) count++;
+                else break;
             }
         }
         return count;
     }
 
-    /* 
+    /*
        g. PriceHike(l,h,r): increase the price of every product, whose id is
        in the range [l,h] by r%.  Discard any fractional pennies in the new
        prices of items.  Returns the sum of the net increases of the prices.
     */
+
     public Money priceHike(long l, long h, double rate) {
         Product p;
-        Money prodPrice;
-        double sum = 0;
-        double diff,temp;
+        double sum = 0.0;
 
-        for(long i=l;i<h;i++){
-            sum =0;
-            if(products.containsKey(i)){
+        for(long i=l;i<=h;i++) {
+            if(products.containsKey(i)) {
                 p = products.get(i);
-                prodPrice = p.getPrice();
-                temp = (double)prodPrice.d +(0.01)*prodPrice.c;
-                prodPrice.d = (long)((1 + (0.01)*rate)*(prodPrice.d+ temp));
-                prodPrice.c = 0;
-                p.setPrice(prodPrice);
-                diff = prodPrice.d - temp;
-                sum += diff;
+                long dollars = p.getPrice().dollars();
+                int cents = p.getPrice().cents();
+                double oldPrice = dollars + 0.01 * cents;
+                double rateOfIncrease = 1 + 0.01*rate;
+                double currPrice = oldPrice * rateOfIncrease;
+                dollars = (long) currPrice;
+                p.getPrice().d = dollars;
+                cents = (int) ((currPrice - dollars ) * 100);
+                p.getPrice().c =  cents;
+                sum += currPrice - oldPrice;
+                HashSet <Long> descList = p.getDescription();
+                for (Long key: descList) {
+                    TreeSet <Product> prodList = prodDescription.get(key);
+                    if (prodList.contains(p)){
+                        prodList.remove(p);
+                    }
+                    prodList.add(p);
+                }
             }
         }
-        return new Money((long)sum,(int)(sum - (long)sum));
+        return new Money((long)sum,(int)((sum - (long)sum) * 100));
     }
 
     /*
@@ -259,13 +277,12 @@ public class MDS {
             }
         }
 
-        List<Long> descList = p.getDescription();
+        HashSet<Long> descList = p.getDescription();
         for(Long descID:list){
-                if(descList.contains(descID)){
-                    descList.remove(descID);
-                }
+            if(descList.contains(descID)){
+                descList.remove(descID);
+            }
         }
-
         return count;
     }
 
@@ -284,9 +301,13 @@ public class MDS {
         public long dollars() { return d; }
         public int cents() { return c; }
         public int compareTo(Money other) { // Complete this, if needed
-            if(this.dollars() != other.dollars())
-                return (int) (this.dollars() - other.dollars());
-            return this.cents() - other.cents();
+            if(this.dollars() != other.dollars()) {
+                return this.dollars() < other.dollars() ? -1 : 1;
+            }
+            if(this.cents() != other.cents()) {
+                return this.cents() < other.cents() ? -1 : 1;
+            }
+            return 0;
         }
         public String toString() { return d + "." + c; }
     }
