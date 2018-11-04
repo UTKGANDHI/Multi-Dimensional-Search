@@ -237,49 +237,57 @@ public class MDS {
        prices of items.  Returns the sum of the net increases of the prices.
     */
 
-    public Money priceHike(long l, long h, double rate) {
+    /*public Money priceHike(long l, long h, double rate) {
         Product p;
         double sum = 0.0;
         SortedMap<Long, Product> subset = new  TreeMap();
         subset = products.subMap(l, true, h, true);
         for (Long key: subset.keySet()) {
             p = products.get(key);
-            long dollars = p.getPrice().dollars();
-            int cents = p.getPrice().cents();
-            double oldPrice = dollars + 0.01 * cents;
+            long oldDollars = p.getPrice().dollars();
+            int oldCents = p.getPrice().cents();
+            double oldPrice = oldDollars + 0.01 * oldCents;
+
             double rateOfIncrease = 1 + 0.01*rate;
             double currPrice = oldPrice * rateOfIncrease;
-            dollars = (long) currPrice;
-            p.getPrice().d = dollars;
-            cents = (int) ((currPrice - dollars ) * 100);
-            p.getPrice().c =  cents;
-            sum += currPrice - oldPrice;
+            long newDollars = (long) currPrice;
+            p.getPrice().d = newDollars;
+            int newCents = (int) ((currPrice - newDollars ) * 100);
+            p.getPrice().c =  newCents;
+            sum += calculateDifference(oldCents, newCents, oldDollars, newDollars);
         }
-        /*for(long i=l;i<=h;i++) {
-            if(products.containsKey(i)) {
-                p = products.get(i);
-                long dollars = p.getPrice().dollars();
-                int cents = p.getPrice().cents();
-                double oldPrice = dollars + 0.01 * cents;
-                double rateOfIncrease = 1 + 0.01*rate;
-                double currPrice = oldPrice * rateOfIncrease;
-                dollars = (long) currPrice;
-                p.getPrice().d = dollars;
-                cents = (int) ((currPrice - dollars ) * 100);
-                p.getPrice().c =  cents;
-                sum += currPrice - oldPrice;
-                HashSet <Long> descList = p.getDescription();
-                for (Long key: descList) {
-                    TreeSet <Product> prodList = prodDescription.get(key);
-                    if (prodList.contains(p)){
-                        prodList.remove(p);
-                    }
-                    prodList.add(p);
-                }
-            }
-        }*/
         return new Money((long)sum,(int)((sum - (long)sum) * 100));
+    }*/
+
+    public Money priceHike(long l, long h, double rate) {
+        Product p;
+        long sum = 0;
+        SortedMap<Long, Product> subset;
+        subset = products.subMap(l, true, h, true);
+        for (Long key: subset.keySet()) {
+            p = products.get(key);
+            long oldDollars = p.getPrice().dollars();
+            int oldCents = p.getPrice().cents();
+            long oldPrice = oldDollars*100 + oldCents;
+            long increase = (long)(oldPrice * (rate/ 100));
+//            double rateOfIncrease = 1 + (rate/100);
+
+            long currPrice = (oldPrice +  increase);
+            long newDollars = currPrice / 100;
+            p.getPrice().d = newDollars;
+            int newCents = (int)(currPrice % 100);
+            p.getPrice().c =  newCents;
+            sum += increase;
+        }
+        return new Money(sum / 100 ,(int)(sum % 100));
     }
+
+    /*private double calculateDifference(int oldCents, int newCents, long oldDollars, long newDollars) {
+        double sum = 0.0;
+        long diffDollars = newDollars - oldDollars;
+        int diffCents = newCents - oldCents;
+        return (diffDollars + 0.01 * diffCents);
+    }*/
 
     /*
       h. RemoveNames(id, list): Remove elements of list from the description of id.
