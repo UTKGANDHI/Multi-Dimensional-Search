@@ -1,5 +1,9 @@
 /** Driver code for LP3
- *  @author rbk
+ *  @author
+ *  Utkarsh Gandhi (usg170030)
+ *  Khushboo Desai(kxd180009)
+ *  Esha Punjabi(ehp170000)
+ *  Karan Thakker(krt170130)
  */
 
 // Change to your net id
@@ -19,7 +23,7 @@ public class LP3Driver {
         } else {
             in = new Scanner(System.in);
         }
-        boolean VERBOSE = false;
+        boolean VERBOSE = true;
         if (args.length > 1) { VERBOSE = Boolean.parseBoolean(args[1]); }
 
         String operation = "";
@@ -61,6 +65,7 @@ public class LP3Driver {
                 case "Delete":
                     id = in.nextLong();
                     result = mds.delete(id);
+                    System.out.println(result);
                     break;
                 case "FindMinPrice":
                     result = mds.findMinPrice(in.nextLong()).dollars();
@@ -70,6 +75,7 @@ public class LP3Driver {
                     break;
                 case "FindPriceRange":
                     result = mds.findPriceRange(in.nextLong(), new MDS.Money(in.next()), new MDS.Money(in.next()));
+                    System.out.println(result);
                     break;
                 case "PriceHike":
                     result = mds.priceHike(in.nextLong(), in.nextLong(), in.nextDouble()).dollars();
