@@ -1,25 +1,26 @@
 /** Starter code for LP3
  *  @author
+ *  Utkarsh Gandhi (usg170030)
+ *  Khushboo Desai(kxd180009)
+ * 	Esha Punjabi(ehp170000)
+ * 	Karan Thakker(krt170130)
  */
 
 // Change to your net id
 package usg170030;
 
 // If you want to create additional classes, place them in this file as subclasses of MDS
-
-import sun.reflect.generics.tree.Tree;
-
 import java.util.*;
 
 public class MDS {
     // Add fields of MDS here
-    TreeMap <Long, Product> products;
-    HashMap <Long, HashSet<Product>> prodDescription;
+    TreeMap <Long, Product> products; // storing the products according to ID wise in a TreeMap
+    HashMap <Long, HashSet<Product>> prodDescription; // storing the descriptions according to their ID in a HashMap
     // Constructors
     class Product {
-        private long id;
-        private Money price;
-        private HashSet<Long> description;
+        private long id; // storing the IDs of the Product
+        private Money price; // storing the price of the product
+        private HashSet<Long> description; // storing the list of descriptions
 
         public Product(long id, Money price, List<Long> description) {
             this.id = id;
@@ -33,26 +34,50 @@ public class MDS {
             this.description = null;
         }
 
+        /** getId method
+         * getting a product id
+         * @return id
+         */
         public long getId() {
             return id;
         }
 
+        /** setId method
+         * setting a product id
+         * @return id
+         */
         public void setId(long id) {
             this.id = id;
         }
 
+        /**getPrice()
+         * getting price of a product
+         * @return price
+         */
         public Money getPrice() {
             return price;
         }
 
+        /**setPrice()
+         * setting price of a product
+         * @param price
+         */
         public void setPrice(Money price) {
             this.price = price;
         }
 
+        /**getDescription()
+         * getting description list of a product
+         * @return description
+         */
         public HashSet<Long> getDescription() {
             return this.description;
         }
 
+        /** setDescription()
+         * setting the description of a product
+         * @param description
+         */
         public void setDescription(List<Long> description) {
             this.description = new HashSet<Long>(description);
         }
@@ -137,14 +162,6 @@ public class MDS {
         return ret;
     }
 
-    private void printMaps() {
-        System.out.println("#############################################################");
-        System.out.println(products);
-        System.out.println("#############################################################");
-        System.out.println(prodDescription);
-        System.out.println("#############################################################");
-    }
-
     // b. Find(id): return price of item with given id (or 0, if not found).
     public Money find(long id) {
         if(products.containsKey(id)) return products.get(id).getPrice();
@@ -182,8 +199,9 @@ public class MDS {
         if(prodDescription.containsKey(n) && prodDescription.get(n).size() != 0) {
             HashSet <Product> prodList = prodDescription.get(n);
             for (Product p: prodList) {
-                if(minMoney == null)
+                if(minMoney == null) {
                     minMoney = p.getPrice();
+                }
                 else
                 {
                     if(minMoney.compareTo(p.getPrice()) > 0) minMoney = p.getPrice();
@@ -203,8 +221,9 @@ public class MDS {
         if(prodDescription.containsKey(n) && prodDescription.get(n).size() != 0) {
             HashSet <Product> prodList = prodDescription.get(n);
             for (Product p: prodList) {
-                if(maxMoney == null)
+                if(maxMoney == null) {
                     maxMoney = p.getPrice();
+                }
                 else
                 {
                     if(maxMoney.compareTo(p.getPrice()) < 0) maxMoney = p.getPrice();
@@ -237,28 +256,6 @@ public class MDS {
        prices of items.  Returns the sum of the net increases of the prices.
     */
 
-    /*public Money priceHike(long l, long h, double rate) {
-        Product p;
-        double sum = 0.0;
-        SortedMap<Long, Product> subset = new  TreeMap();
-        subset = products.subMap(l, true, h, true);
-        for (Long key: subset.keySet()) {
-            p = products.get(key);
-            long oldDollars = p.getPrice().dollars();
-            int oldCents = p.getPrice().cents();
-            double oldPrice = oldDollars + 0.01 * oldCents;
-
-            double rateOfIncrease = 1 + 0.01*rate;
-            double currPrice = oldPrice * rateOfIncrease;
-            long newDollars = (long) currPrice;
-            p.getPrice().d = newDollars;
-            int newCents = (int) ((currPrice - newDollars ) * 100);
-            p.getPrice().c =  newCents;
-            sum += calculateDifference(oldCents, newCents, oldDollars, newDollars);
-        }
-        return new Money((long)sum,(int)((sum - (long)sum) * 100));
-    }*/
-
     public Money priceHike(long l, long h, double rate) {
         Product p;
         long sum = 0;
@@ -270,8 +267,6 @@ public class MDS {
             int oldCents = p.getPrice().cents();
             long oldPrice = oldDollars*100 + oldCents;
             long increase = (long)(oldPrice * (rate/ 100));
-//            double rateOfIncrease = 1 + (rate/100);
-
             long currPrice = (oldPrice +  increase);
             long newDollars = currPrice / 100;
             p.getPrice().d = newDollars;
@@ -281,13 +276,6 @@ public class MDS {
         }
         return new Money(sum / 100 ,(int)(sum % 100));
     }
-
-    /*private double calculateDifference(int oldCents, int newCents, long oldDollars, long newDollars) {
-        double sum = 0.0;
-        long diffDollars = newDollars - oldDollars;
-        int diffCents = newCents - oldCents;
-        return (diffDollars + 0.01 * diffCents);
-    }*/
 
     /*
       h. RemoveNames(id, list): Remove elements of list from the description of id.
@@ -310,7 +298,6 @@ public class MDS {
                 }
             }
         }
-
         HashSet<Long> descList = p.getDescription();
         for(Long descID:list){
             if(descList.contains(descID)){
@@ -353,5 +340,4 @@ public class MDS {
         }
         public String toString() { return d + "." + c; }
     }
-
 }
